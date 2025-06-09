@@ -1,0 +1,9 @@
+"The core of my design is based on the fact that prices are defined at the level of an instrument and location. Each of these combinations can have multiple monikers — essentially just different identifiers or aliases — but they all point to the same price.
+
+So in my approach, I go directly from instrument and location to the set of external monikers and publish the same price for all of them. I intentionally don't involve 'positions' in this process, because they represent a higher-level abstraction that doesn’t affect the actual price logic.
+
+The BA’s suggestion assumes that monikers are tied to positions and should be loaded through position IDs first. But that makes sense only if each moniker represents a different price — and in our case, that’s not true. All monikers under the same instrument-location get the same value.
+
+Using 'position' adds extra complexity and dependencies, which we don’t need unless the business requires pricing per moniker — which isn’t the case right now.
+
+So my design keeps things simple, efficient, and aligned with how prices actually work. It’s also flexible enough to evolve later if the business model changes."
