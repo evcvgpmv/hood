@@ -1,0 +1,20 @@
+Recommended Hardware (for Local Setup with Ollama)
+You can run this comfortably on a single modern GPU, like:
+
+Component	Recommendation
+GPU	NVIDIA RTX 3060 (12GB VRAM)
+CPU	Intel i5/i7 or AMD Ryzen 5/7
+RAM	16–32GB
+Storage	SSD (at least 500GB)
+OS	 Windows
+
+💸 Estimated cost for such a machine: $1,000–$1,500
+
+  User → LangChain Agent → Ollama (CodeLlama) → SQL → SQL Server → Result → User
+
+Ollama is a lightweight tool that lets you run large language models (LLMs) locally on your own machine with just a few commands — no deep ML knowledge needed.
+
+Think of it as:
+
+🔌 "Docker for LLMs"
+Just like Docker runs containers, Ollama runs LLMs locally — easily, fast, and securely.
