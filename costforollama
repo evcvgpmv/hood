@@ -1,3 +1,21 @@
+Knowledge Tools:
+ACtion Tools:  function tool support,
+
+private data: Azure AI Search, File Search, Microsoft Fabric, and more
+public web data: Grounding with Bing Search
+licensed data: Tripadvisor, Morningstar
+unstructured data: Azure AI Search, File Search
+structured data: Microsoft Fabric and more
+
+
+Azure Logic Apps: Low-code / no-code solution to add a workflow to your AI Agent
+OpenAPI Spec tool: Bring an existing OpenAPI specification of a service API you want to add to your AI agent, with no or minor changes.
+Function calling: Write your own custom, stateless functions to define the expected behaviors.
+Azure Functions: Write and manage your own custom, stateful functions.
+
+created ai agent and thread.
+
+
 Recommended Hardware (for Local Setup with Ollama)
 You can run this comfortably on a single modern GPU, like:
 
