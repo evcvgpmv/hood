@@ -13,27 +13,45 @@
         <div class="toggle-section">
             <div class="toggle-item">
                 <label class="toggle-label">Completion/Work Issue</label>
-                <div class="toggle-switch">
-                    <input type="checkbox" id="completionIssue" @bind="completionIssue" class="toggle-input" />
-                    <label for="completionIssue" class="toggle-slider"></label>
+                <div class="radio-group">
+                    <label>
+                        <input type="radio" name="completionIssue" 
+                               @bind="completionIssue" value="true" /> Yes
+                    </label>
+                    <label>
+                        <input type="radio" name="completionIssue"
+                               @bind="completionIssue" value="false" /> No
+                    </label>
                 </div>
                 <span class="toggle-status">@(completionIssue ? "Yes" : "No")</span>
             </div>
             
             <div class="toggle-item">
                 <label class="toggle-label">Data Quality Issue</label>
-                <div class="toggle-switch">
-                    <input type="checkbox" id="dataQualityIssue" @bind="dataQualityIssue" class="toggle-input" />
-                    <label for="dataQualityIssue" class="toggle-slider"></label>
+                <div class="radio-group">
+                    <label>
+                        <input type="radio" name="dataQualityIssue" 
+                               @bind="dataQualityIssue" value="true" /> Yes
+                    </label>
+                    <label>
+                        <input type="radio" name="dataQualityIssue"
+                               @bind="dataQualityIssue" value="false" /> No
+                    </label>
                 </div>
                 <span class="toggle-status">@(dataQualityIssue ? "Yes" : "No")</span>
             </div>
             
             <div class="toggle-item">
                 <label class="toggle-label">Dashboard/UI Issue</label>
-                <div class="toggle-switch">
-                    <input type="checkbox" id="dashboardIssue" @bind="dashboardIssue" class="toggle-input" />
-                    <label for="dashboardIssue" class="toggle-slider"></label>
+                <div class="radio-group">
+                    <label>
+                        <input type="radio" name="dashboardIssue" 
+                               @bind="dashboardIssue" value="true" /> Yes
+                    </label>
+                    <label>
+                        <input type="radio" name="dashboardIssue"
+                               @bind="dashboardIssue" value="false" /> No
+                    </label>
                 </div>
                 <span class="toggle-status">@(dashboardIssue ? "Yes" : "No")</span>
             </div>
