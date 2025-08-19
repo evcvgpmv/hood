@@ -1,0 +1,96 @@
+@page "/"
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>Data Delivery Issues Dashboard</PageTitle>
+
+<div class="page-container">
+    <h1>Data Delivery Issues Dashboard</h1>
+    <p>Use the form below to report data delivery issues and send them for review.</p>
+    
+    <div class="data-delivery-issues-container">
+        <h3 class="section-title">Data Delivery Issues Section</h3>
+        
+        <div class="toggle-section">
+            <div class="toggle-item">
+                <label class="toggle-label">Completion/Work Issue</label>
+                <div class="toggle-switch">
+                    <input type="checkbox" id="completionIssue" @bind="completionIssue" class="toggle-input" />
+                    <label for="completionIssue" class="toggle-slider"></label>
+                </div>
+                <span class="toggle-status">@(completionIssue ? "Yes" : "No")</span>
+            </div>
+            
+            <div class="toggle-item">
+                <label class="toggle-label">Data Quality Issue</label>
+                <div class="toggle-switch">
+                    <input type="checkbox" id="dataQualityIssue" @bind="dataQualityIssue" class="toggle-input" />
+                    <label for="dataQualityIssue" class="toggle-slider"></label>
+                </div>
+                <span class="toggle-status">@(dataQualityIssue ? "Yes" : "No")</span>
+            </div>
+            
+            <div class="toggle-item">
+                <label class="toggle-label">Dashboard/UI Issue</label>
+                <div class="toggle-switch">
+                    <input type="checkbox" id="dashboardIssue" @bind="dashboardIssue" class="toggle-input" />
+                    <label for="dashboardIssue" class="toggle-slider"></label>
+                </div>
+                <span class="toggle-status">@(dashboardIssue ? "Yes" : "No")</span>
+            </div>
+        </div>
+        
+        <div class="form-section">
+            <div class="form-group">
+                <label for="incidentsRaised" class="form-label">Incidents Raised:</label>
+                <textarea id="incidentsRaised" @bind="incidentsRaised" class="form-textarea" 
+                          placeholder="Type in incidents raised"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="comments" class="form-label">Comments:</label>
+                <textarea id="comments" @bind="comments" class="form-textarea" 
+                          placeholder="Type in comments"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="mailRecipients" class="form-label">Mail Recipients:</label>
+                <textarea id="mailRecipients" @bind="mailRecipients" class="form-textarea" 
+                          placeholder="Type email addresses"></textarea>
+            </div>
+        </div>
+        
+        <div class="button-section">
+            <button type="button" @onclick="HandleSendForReview" class="btn btn-primary">
+                Send for Review
+            </button>
+            <button type="button" @onclick="HandleCancel" class="btn btn-secondary">
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool completionIssue = true; // Default to Yes
+    private bool dataQualityIssue = false; // Default to No
+    private bool dashboardIssue = true; // Default to Yes
+    private string incidentsRaised = "";
+    private string comments = "";
+    private string mailRecipients = "";
+    
+    private async Task HandleSendForReview()
+    {
+        // Handle sending for review logic here
+        await Task.Delay(100); // Simulate async operation
+        Console.WriteLine("Sending for review...");
+        // You can add your business logic here
+    }
+    
+    private async Task HandleCancel()
+    {
+        // Handle cancel logic here
+        await Task.Delay(100); // Simulate async operation
+        Console.WriteLine("Cancelled...");
+        // You can add your business logic here
+    }
+} 
