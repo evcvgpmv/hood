@@ -1,0 +1,595 @@
+@page "/data-delivery-issues"
+@using Microsoft.AspNetCore.Components.Forms
+@using System.ComponentModel.DataAnnotations
+
+<EditForm Model="@formModel" OnValidSubmit="@ShowConfirmationDialog">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-container">
+        <div class="form-header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-database"></i>
+                </div>
+                <h2>Data Delivery Issues</h2>
+            </div>
+        </div>
+        
+        <div class="form-body">
+            <div class="form-section">
+                <div class="section-title">
+                    <h3><i class="fas fa-tasks"></i> Issue Types</h3>
+                </div>
+                
+                <div class="toggle-container">
+                    <div class="toggle-item">
+                        <div class="toggle-label">Completion/Work Issue</div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" @bind="formModel.CompletionWorkIssue" />
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="status-indicator @(formModel.CompletionWorkIssue ? "status-yes" : "status-no")">
+                        <i class="@(formModel.CompletionWorkIssue ? "fas fa-check-circle" : "fas fa-times-circle")"></i>
+                        <span>Currently set to: @(formModel.CompletionWorkIssue ? "Yes" : "No")</span>
+                    </div>
+                    
+                    <div class="toggle-item">
+                        <div class="toggle-label">Data Quality Issue</div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" @bind="formModel.DataQualityIssue" />
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="status-indicator @(formModel.DataQualityIssue ? "status-yes" : "status-no")">
+                        <i class="@(formModel.DataQualityIssue ? "fas fa-check-circle" : "fas fa-times-circle")"></i>
+                        <span>Currently set to: @(formModel.DataQualityIssue ? "Yes" : "No")</span>
+                    </div>
+                    
+                    <div class="toggle-item">
+                        <div class="toggle-label">Dashboard/UI Issue</div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" @bind="formModel.DashboardUIIssue" />
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="status-indicator @(formModel.DashboardUIIssue ? "status-yes" : "status-no")">
+                        <i class="@(formModel.DashboardUIIssue ? "fas fa-check-circle" : "fas fa-times-circle")"></i>
+                        <span>Currently set to: @(formModel.DashboardUIIssue ? "Yes" : "No")</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h3><i class="fas fa-exclamation-circle"></i> Incidents Raised</h3>
+                <InputText @bind-Value="@formModel.IncidentsRaised" class="input-field" 
+                           placeholder="Enter incident IDs (e.g., INC123456789, INC987654321)" />
+            </div>
+            
+            <div class="form-section">
+                <h3><i class="fas fa-comment"></i> Comments</h3>
+                <InputTextArea @bind-Value="@formModel.Comments" class="input-field" 
+                               placeholder="Please provide details about the issues encountered" />
+            </div>
+            
+            <div class="form-section">
+                <h3><i class="fas fa-envelope"></i> Mail Recipients</h3>
+                <InputText @bind-Value="@formModel.MailRecipients" class="input-field" 
+                           placeholder="Enter email addresses (comma separated)" />
+                <ValidationMessage For="@(() => formModel.MailRecipients)" />
+            </div>
+            
+            <div class="button-group">
+                <button type="button" class="btn btn-secondary" @onclick="@Cancel">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-paper-plane"></i> Send for review
+                </button>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@if (showConfirmationDialog)
+{
+    <div class="modal-overlay">
+        <div class="confirmation-dialog">
+            <div class="dialog-header">
+                <h4><i class="fas fa-question-circle"></i> Confirm Submission</h4>
+            </div>
+            <div class="dialog-body">
+                <p>Are you sure you want to send this data delivery issue for review?</p>
+                <div class="dialog-summary">
+                    <strong>Summary of your submission:</strong>
+                    <ul>
+                        <li><strong>Completion/Work Issue:</strong> @(formModel.CompletionWorkIssue ? "Yes" : "No")</li>
+                        <li><strong>Data Quality Issue:</strong> @(formModel.DataQualityIssue ? "Yes" : "No")</li>
+                        <li><strong>Dashboard/UI Issue:</strong> @(formModel.DashboardUIIssue ? "Yes" : "No")</li>
+                        @if (!string.IsNullOrEmpty(formModel.IncidentsRaised))
+                        {
+                            <li><strong>Incidents:</strong> @formModel.IncidentsRaised</li>
+                        }
+                        @if (!string.IsNullOrEmpty(formModel.Comments))
+                        {
+                            <li><strong>Comments:</strong> @formModel.Comments</li>
+                        }
+                        <li><strong>Mail Recipients:</strong> @formModel.MailRecipients</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="dialog-footer">
+                <button type="button" @onclick="ConfirmSendForReview" class="btn btn-primary">
+                    <i class="fas fa-check"></i> Yes, Send for Review
+                </button>
+                <button type="button" @onclick="HideConfirmationDialog" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private DataDeliveryIssueModel formModel = new DataDeliveryIssueModel();
+    private bool showConfirmationDialog = false;
+    
+    protected override void OnInitialized()
+    {
+        // Set initial toggle values as specified
+        formModel.CompletionWorkIssue = true;
+        formModel.DataQualityIssue = false;
+        formModel.DashboardUIIssue = true;
+    }
+    
+    private void ShowConfirmationDialog()
+    {
+        showConfirmationDialog = true;
+    }
+    
+    private void HideConfirmationDialog()
+    {
+        showConfirmationDialog = false;
+    }
+    
+    private void ConfirmSendForReview()
+    {
+        showConfirmationDialog = false;
+        HandleValidSubmit();
+    }
+    
+    private void HandleValidSubmit()
+    {
+        // In a real application, you would process the form data here
+        Console.WriteLine("Form submitted:");
+        Console.WriteLine($"Completion/Work Issue: {formModel.CompletionWorkIssue}");
+        Console.WriteLine($"Data Quality Issue: {formModel.DataQualityIssue}");
+        Console.WriteLine($"Dashboard/UI Issue: {formModel.DashboardUIIssue}");
+        Console.WriteLine($"Incidents Raised: {formModel.IncidentsRaised}");
+        Console.WriteLine($"Comments: {formModel.Comments}");
+        Console.WriteLine($"Mail Recipients: {formModel.MailRecipients}");
+        
+        // Show success message
+        // In a real app, you might use a toast notification or other UI feedback
+        
+        // Reset the form
+        formModel = new DataDeliveryIssueModel();
+        formModel.CompletionWorkIssue = true;
+        formModel.DataQualityIssue = false;
+        formModel.DashboardUIIssue = true;
+    }
+    
+    private void Cancel()
+    {
+        formModel = new DataDeliveryIssueModel();
+        formModel.CompletionWorkIssue = true;
+        formModel.DataQualityIssue = false;
+        formModel.DashboardUIIssue = true;
+    }
+    
+    public class DataDeliveryIssueModel
+    {
+        public bool CompletionWorkIssue { get; set; }
+        public bool DataQualityIssue { get; set; }
+        public bool DashboardUIIssue { get; set; }
+        
+        public string IncidentsRaised { get; set; }
+        public string Comments { get; set; }
+        
+        [Required(ErrorMessage = "Mail recipients are required")]
+        [EmailList(ErrorMessage = "Please enter valid email addresses")]
+        public string MailRecipients { get; set; } = "available.age-mail@barclays.com, kameib.dccstb@barclays.com";
+    }
+    
+    // Custom validation attribute for email lists
+    public class EmailListAttribute : ValidationAttribute
+    {
+        protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+        {
+            if (value is string emailList)
+            {
+                var emails = emailList.Split(',');
+                foreach (var email in emails)
+                {
+                    var trimmedEmail = email.Trim();
+                    if (!string.IsNullOrEmpty(trimmedEmail) && !IsValidEmail(trimmedEmail))
+                    {
+                        return new ValidationResult(ErrorMessage ?? "Invalid email format");
+                    }
+                }
+            }
+            return ValidationResult.Success;
+        }
+        
+        private bool IsValidEmail(string email)
+        {
+            try {
+                var addr = new System.Net.Mail.MailAddress(email);
+                return addr.Address == email;
+            }
+            catch {
+                return false;
+            }
+        }
+    }
+}
+
+<style>
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+        background-color: #fff;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+    }
+    
+    .form-header {
+        background: #2c3e50;
+        color: white;
+        padding: 20px 30px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .header-content {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .form-header h2 {
+        font-weight: 600;
+        font-size: 24px;
+    }
+    
+    .form-body {
+        padding: 30px;
+    }
+    
+    .form-section {
+        background-color: #f9f9f9;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        border-left: 4px solid #3498db;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+    
+    h3 {
+        color: #2c3e50;
+        margin-bottom: 15px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+    }
+    
+    h3 i {
+        margin-right: 10px;
+        color: #3498db;
+    }
+    
+    .toggle-container {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .toggle-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 15px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .toggle-label {
+        font-weight: 500;
+    }
+    
+    .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 30px;
+    }
+    
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 34px;
+    }
+    
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 22px;
+        width: 22px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+    
+    input:checked + .slider {
+        background-color: #2ecc71;
+    }
+    
+    input:checked + .slider:before {
+        transform: translateX(30px);
+    }
+    
+    .input-field {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-family: inherit;
+        font-size: 15px;
+        margin-top: 8px;
+    }
+    
+    .input-field:focus {
+        outline: none;
+        border-color: #3498db;
+        box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+    }
+    
+    .button-group {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+        justify-content: flex-end;
+    }
+    
+    .btn {
+        padding: 12px 25px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .btn-primary {
+        background-color: #3498db;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background-color: #2980b9;
+        transform: translateY(-2px);
+    }
+    
+    .btn-secondary {
+        background-color: #95a5a6;
+        color: white;
+    }
+    
+    .btn-secondary:hover {
+        background-color: #7f8c8d;
+        transform: translateY(-2px);
+    }
+    
+    .status-indicator {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        margin-top: 5px;
+    }
+    
+    .status-yes {
+        color: #27ae60;
+    }
+    
+    .status-no {
+        color: #e74c3c;
+    }
+    
+    .section-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    
+    .logo {
+        width: 40px;
+        height: 40px;
+        background: #3498db;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 20px;
+    }
+    
+    .validation-message {
+        color: #e74c3c;
+        font-size: 0.9em;
+        margin-top: 5px;
+    }
+    
+    /* Confirmation Dialog Styles */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        animation: fadeIn 0.3s ease;
+    }
+    
+    .confirmation-dialog {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        max-width: 500px;
+        width: 90%;
+        animation: slideIn 0.3s ease;
+    }
+    
+    .dialog-header {
+        padding: 20px 20px 0 20px;
+        border-bottom: 1px solid #ecf0f1;
+    }
+    
+    .dialog-header h4 {
+        margin: 0;
+        color: #2c3e50;
+        font-size: 20px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .dialog-body {
+        padding: 20px;
+    }
+    
+    .dialog-body p {
+        margin: 0 0 20px 0;
+        color: #34495e;
+        font-size: 16px;
+        line-height: 1.5;
+    }
+    
+    .dialog-summary {
+        background-color: #f8f9fa;
+        border-radius: 6px;
+        padding: 15px;
+        border-left: 4px solid #3498db;
+    }
+    
+    .dialog-summary strong {
+        color: #2c3e50;
+        display: block;
+        margin-bottom: 10px;
+    }
+    
+    .dialog-summary ul {
+        margin: 0;
+        padding-left: 20px;
+        color: #34495e;
+    }
+    
+    .dialog-summary li {
+        margin-bottom: 5px;
+        line-height: 1.4;
+    }
+    
+    .dialog-footer {
+        padding: 0 20px 20px 20px;
+        display: flex;
+        gap: 15px;
+        justify-content: flex-end;
+    }
+    
+    .dialog-footer .btn {
+        min-width: 140px;
+    }
+    
+    /* Animations */
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    @keyframes slideIn {
+        from { 
+            opacity: 0;
+            transform: translateY(-20px) scale(0.95);
+        }
+        to { 
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+    
+    @media (max-width: 600px) {
+        .form-container {
+            margin: 10px;
+        }
+        
+        .form-body {
+            padding: 20px;
+        }
+        
+        .button-group {
+            flex-direction: column;
+        }
+        
+        .btn {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .toggle-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        
+        .confirmation-dialog {
+            width: 95%;
+            margin: 20px;
+        }
+        
+        .dialog-footer {
+            flex-direction: column;
+        }
+        
+        .dialog-footer .btn {
+            width: 100%;
+        }
+    }
+</style>
