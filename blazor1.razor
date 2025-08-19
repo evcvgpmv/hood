@@ -1,0 +1,194 @@
+// File: Pages/MIDashboard.razor
+@page "/mi-dashboard"
+@inject NavigationManager Navigation
+@inject HttpClient Http
+@inject IUserService UserService
+
+<h3>MI Dashboard</h3>
+
+<div class="filters">
+    <label>Date From: <input type="date" @bind="DateFrom" /></label>
+    <label>Date To: <input type="date" @bind="DateTo" /></label>
+    <label>Asset Class:
+        <select multiple @bind="SelectedAssetClasses">
+            @foreach (var ac in AssetClasses)
+            {
+                <option value="@ac">@ac</option>
+            }
+        </select>
+    </label>
+    <button class="btn btn-primary" @onclick="LoadIssues">Apply Filters</button>
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Report Date</th>
+            <th>Asset Class</th>
+            <th>Data Delivered</th>
+            <th>SLA Met</th>
+            <th>Completeness</th>
+            <th>Data Quality</th>
+            <th>Dashboard UI</th>
+            <th>Incidents</th>
+            <th>Comments</th>
+            <th>Checked By</th>
+            <th>Reviewed By</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var issue in Issues)
+        {
+            <tr>
+                <td>@issue.ReportDate.ToShortDateString()</td>
+                <td>@issue.AssetClass</td>
+                <td>@(issue.DataDelivered ? "Yes" : "No")</td>
+                <td>@(issue.SLATimingMet ? "Yes" : "No")</td>
+                <td>@(issue.CompletenessIssue ? "Yes" : "No")</td>
+                <td>@(issue.DataQualityIssue ? "Yes" : "No")</td>
+                <td>@(issue.DashboardUIIssue ? "Yes" : "No")</td>
+                <td>@issue.IncidentsRaised</td>
+                <td>@issue.Comments</td>
+                <td>@issue.CheckedBy</td>
+                <td>
+                    @if (string.IsNullOrEmpty(issue.ReviewedBy) && UserService.IsSupervisor())
+                    {
+                        <button class="btn btn-success" @onclick="() => Review(issue.Id)">Review</button>
+                    }
+                    else
+                    {
+                        @issue.ReviewedBy
+                    }
+                </td>
+                <td>
+                    @if (UserService.IsSupervisor())
+                    {
+                        <button class="btn btn-outline-info" @onclick="() => SendReviewRequest(issue.Id)">Send Review Email</button>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h4>Hangfire Job Logs</h4>
+@if (JobLogs != null && JobLogs.Any())
+{
+    <button class="btn btn-secondary mb-2" @onclick="LoadJobLogs">Refresh Logs</button>
+    <label class="ms-3">
+        Filter:
+        <select @bind="SelectedStatusFilter">
+            <option value="">All</option>
+            <option value="Succeeded">Succeeded</option>
+            <option value="Failed">Failed</option>
+        </select>
+    </label>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Job ID</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Created At</th>
+                <th>Result</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var log in FilteredLogs)
+            {
+                <tr>
+                    <td>@log.JobId</td>
+                    <td>@log.JobType</td>
+                    <td>@log.Status</td>
+                    <td>@log.CreatedAt.ToString("g")</td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(log.Result) && log.Result.Length > 100)
+                        {
+                            <details>
+                                <summary>View Result</summary>
+                                <pre>@log.Result</pre>
+                            </details>
+                        }
+                        else
+                        {
+                            @log.Result
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No recent job logs available.</p>
+}
+
+@code {
+    private DateTime DateFrom = DateTime.Today.AddDays(-8);
+    private DateTime DateTo = DateTime.Today.AddDays(-1);
+    private List<string> AssetClasses = new() { "Equity", "Bond", "CDS" };
+    private List<string> SelectedAssetClasses = new();
+    private List<DataDeliveryIssue> Issues = new();
+    private List<JobLog> JobLogs = new();
+    private string SelectedStatusFilter = "";
+
+    private IEnumerable<JobLog> FilteredLogs => string.IsNullOrWhiteSpace(SelectedStatusFilter)
+        ? JobLogs
+        : JobLogs.Where(j => j.Status.Equals(SelectedStatusFilter, StringComparison.OrdinalIgnoreCase));
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadIssues();
+        await LoadJobLogs();
+    }
+
+    private async Task LoadIssues()
+    {
+        var url = $"/api/issues?from={DateFrom:yyyy-MM-dd}&to={DateTo:yyyy-MM-dd}&assets={string.Join(",", SelectedAssetClasses)}";
+        Issues = await Http.GetFromJsonAsync<List<DataDeliveryIssue>>(url);
+    }
+
+    private async Task Review(int id)
+    {
+        await Http.PostAsync($"/api/issues/review/{id}", null);
+        await LoadIssues();
+    }
+
+    private async Task SendReviewRequest(int id)
+    {
+        await Http.PostAsync($"/api/issues/send-review/{id}", null);
+    }
+
+    private async Task LoadJobLogs()
+    {
+        JobLogs = await Http.GetFromJsonAsync<List<JobLog>>("/api/jobs/logs");
+    }
+
+    public class DataDeliveryIssue
+    {
+        public int Id { get; set; }
+        public DateTime ReportDate { get; set; }
+        public string AssetClass { get; set; }
+        public bool DataDelivered { get; set; }
+        public bool SLATimingMet { get; set; }
+        public bool CompletenessIssue { get; set; }
+        public bool DataQualityIssue { get; set; }
+        public bool DashboardUIIssue { get; set; }
+        public string IncidentsRaised { get; set; }
+        public string Comments { get; set; }
+        public string CheckedBy { get; set; }
+        public string ReviewedBy { get; set; }
+        public DateTime? ReviewedOn { get; set; }
+    }
+
+    public class JobLog
+    {
+        public string JobId { get; set; }
+        public string JobType { get; set; }
+        public string Status { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public string Result { get; set; }
+    }
+}
