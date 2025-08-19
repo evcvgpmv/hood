@@ -1,0 +1,257 @@
+@page "/data-delivery-issues"
+@using Microsoft.AspNetCore.Components.Forms
+@using System.ComponentModel.DataAnnotations
+
+<EditForm Model="@formModel" OnValidSubmit="@HandleSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-container">
+        <h2>Data Delivery Issues</h2>
+        
+        <div class="form-section">
+            <h4>Computingness Issues</h4>
+            <div class="radio-group">
+                <label>
+                    <InputRadio @bind-Value="@formModel.ComputingnessIssues" Value="@("Yes")" />
+                    Yes
+                </label>
+                <label>
+                    <InputRadio @bind-Value="@formModel.ComputingnessIssues" Value="@("No")" />
+                    No
+                </label>
+            </div>
+        </div>
+        
+        <div class="form-section">
+            <h4>Data Quality Issues</h4>
+            <div class="radio-group">
+                <label>
+                    <InputRadio @bind-Value="@formModel.DataQualityIssues" Value="@("Yes")" />
+                    Yes
+                </label>
+                <label>
+                    <InputRadio @bind-Value="@formModel.DataQualityIssues" Value="@("No")" />
+                    No
+                </label>
+            </div>
+        </div>
+        
+        <div class="form-section">
+            <h4>Distribution UI Issues</h4>
+            <div class="radio-group">
+                <label>
+                    <InputRadio @bind-Value="@formModel.DistributionUIIssues" Value="@("Yes")" />
+                    Yes
+                </label>
+                <label>
+                    <InputRadio @bind-Value="@formModel.DistributionUIIssues" Value="@("No")" />
+                    No
+                </label>
+            </div>
+        </div>
+        
+        <div class="form-section">
+            <h4>Incidents Related</h4>
+            <ol class="incident-list">
+                <li>INC1037969255</li>
+                <li>INC1037972522</li>
+            </ol>
+        </div>
+        
+        <div class="form-section">
+            <h4>Convenient</h4>
+            <ol class="convenient-list">
+                <li>We are missing VRE prices for brands</li>
+                <li>Risk is not complete for CDS</li>
+            </ol>
+        </div>
+        
+        <div class="form-section">
+            <h4>Mail recipient(s)</h4>
+            <InputTextArea @bind-Value="@formModel.MailRecipients" class="email-field" />
+            <ValidationMessage For="@(() => formModel.MailRecipients)" />
+        </div>
+        
+        <div class="button-group">
+            <button type="submit" class="btn btn-primary">Send for review</button>
+            <button type="button" class="btn btn-secondary" @onclick="@Cancel">Cancel</button>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    private DataDeliveryIssueModel formModel = new DataDeliveryIssueModel();
+    
+    private void HandleSubmit()
+    {
+        // In a real application, you would process the form data here
+        // For example, send an email with the issue report
+        
+        Console.WriteLine("Form submitted:");
+        Console.WriteLine($"Computingness Issues: {formModel.ComputingnessIssues}");
+        Console.WriteLine($"Data Quality Issues: {formModel.DataQualityIssues}");
+        Console.WriteLine($"Distribution UI Issues: {formModel.DistributionUIIssues}");
+        Console.WriteLine($"Mail Recipients: {formModel.MailRecipients}");
+        
+        // Show success message (you could use a toast notification in a real app)
+        // Reset the form
+        formModel = new DataDeliveryIssueModel();
+    }
+    
+    private void Cancel()
+    {
+        formModel = new DataDeliveryIssueModel();
+    }
+    
+    public class DataDeliveryIssueModel
+    {
+        public string ComputingnessIssues { get; set; } = "No";
+        public string DataQualityIssues { get; set; } = "No";
+        public string DistributionUIIssues { get; set; } = "No";
+        
+        [Required(ErrorMessage = "Mail recipients are required")]
+        [EmailList(ErrorMessage = "Please enter valid email addresses")]
+        public string MailRecipients { get; set; } = "available.age-mail@barclays.com, kameib.dccstb@barclays.com";
+    }
+    
+    // Custom validation attribute for email lists
+    public class EmailListAttribute : ValidationAttribute
+    {
+        protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+        {
+            if (value is string emailList)
+            {
+                var emails = emailList.Split(',');
+                foreach (var email in emails)
+                {
+                    var trimmedEmail = email.Trim();
+                    if (!string.IsNullOrEmpty(trimmedEmail) && !IsValidEmail(trimmedEmail))
+                    {
+                        return new ValidationResult(ErrorMessage ?? "Invalid email format");
+                    }
+                }
+            }
+            return ValidationResult.Success;
+        }
+        
+        private bool IsValidEmail(string email)
+        {
+            try {
+                var addr = new System.Net.Mail.MailAddress(email);
+                return addr.Address == email;
+            }
+            catch {
+                return false;
+            }
+        }
+    }
+}
+
+<style>
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f9f9f9;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    h2 {
+        color: #2c3e50;
+        border-bottom: 2px solid #3498db;
+        padding-bottom: 10px;
+        margin-bottom: 25px;
+    }
+    
+    .form-section {
+        background-color: white;
+        padding: 15px 20px;
+        margin-bottom: 20px;
+        border-radius: 6px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    h4 {
+        margin-bottom: 12px;
+        color: #34495e;
+        font-weight: 600;
+    }
+    
+    .radio-group {
+        display: flex;
+        gap: 20px;
+    }
+    
+    .radio-group label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        font-weight: normal;
+    }
+    
+    .incident-list, .convenient-list {
+        margin-left: 20px;
+        padding-left: 0;
+        color: #555;
+    }
+    
+    .incident-list li, .convenient-list li {
+        margin-bottom: 8px;
+        line-height: 1.5;
+    }
+    
+    .email-field {
+        width: 100%;
+        min-height: 100px;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-family: inherit;
+        resize: vertical;
+    }
+    
+    .button-group {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+        justify-content: flex-end;
+    }
+    
+    .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 500;
+        transition: background-color 0.2s;
+    }
+    
+    .btn-primary {
+        background-color: #3498db;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background-color: #2980b9;
+    }
+    
+    .btn-secondary {
+        background-color: #95a5a6;
+        color: white;
+    }
+    
+    .btn-secondary:hover {
+        background-color: #7f8c8d;
+    }
+    
+    .validation-message {
+        color: #e74c3c;
+        font-size: 0.9em;
+        margin-top: 5px;
+    }
+</style>
