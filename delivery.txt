@@ -1,0 +1,104 @@
+@page "/data-delivery-issues"
+@using System.ComponentModel.DataAnnotations
+
+<EditForm Model="@model" OnValidSubmit="@HandleValidSubmit">
+    <div class="form-container">
+        <h3>Data Delivery Issues</h3>
+        
+        <div class="form-section">
+            <h4>Computingness Issues</h4>
+            <div class="radio-group">
+                <label>
+                    <InputRadio @bind-Value="@model.ComputingnessIssues" Value="Yes" />
+                    Yes
+                </label>
+                <label>
+                    <InputRadio @bind-Value="@model.ComputingnessIssues" Value="No" />
+                    No
+                </label>
+            </div>
+        </div>
+        
+        <div class="form-section">
+            <h4>Data Quality Issues</h4>
+            <div class="radio-group">
+                <label>
+                    <InputRadio @bind-Value="@model.DataQualityIssues" Value="Yes" />
+                    Yes
+                </label>
+                <label>
+                    <InputRadio @bind-Value="@model.DataQualityIssues" Value="No" />
+                    No
+                </label>
+            </div>
+        </div>
+        
+        <div class="form-section">
+            <h4>Distribution UI Issues</h4>
+            <div class="radio-group">
+                <label>
+                    <InputRadio @bind-Value="@model.DistributionUIIssues" Value="Yes" />
+                    Yes
+                </label>
+                <label>
+                    <InputRadio @bind-Value="@model.DistributionUIIssues" Value="No" />
+                    No
+                </label>
+            </div>
+        </div>
+        
+        <div class="form-section">
+            <h4>Incidents Related</h4>
+            <ol class="incident-list">
+                <li>INC1037969255</li>
+                <li>INC1037972522</li>
+            </ol>
+        </div>
+        
+        <div class="form-section">
+            <h4>Convenient</h4>
+            <ol class="convenient-list">
+                <li>We are missing VRE prices for brands</li>
+                <li>Risk is not complete for CDS</li>
+            </ol>
+        </div>
+        
+        <div class="form-section">
+            <h4>Mail recipient(s)</h4>
+            <InputTextArea @bind-Value="@model.MailRecipients" class="email-textarea" />
+        </div>
+        
+        <div class="button-group">
+            <button type="submit" class="btn btn-primary">Send for review</button>
+            <button type="button" class="btn btn-secondary" @onclick="@Cancel">Cancel</button>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    private DataDeliveryIssueModel model = new DataDeliveryIssueModel();
+    
+    private void HandleValidSubmit()
+    {
+        // Here you would implement the email sending logic
+        Console.WriteLine("Form submitted successfully");
+        // Reset the form if needed
+        model = new DataDeliveryIssueModel();
+    }
+    
+    private void Cancel()
+    {
+        // Handle cancel action
+        model = new DataDeliveryIssueModel();
+    }
+    
+    public class DataDeliveryIssueModel
+    {
+        public string ComputingnessIssues { get; set; } = "No";
+        public string DataQualityIssues { get; set; } = "No";
+        public string DistributionUIIssues { get; set; } = "No";
+        
+        [Required(ErrorMessage = "Mail recipients are required")]
+        public string MailRecipients { get; set; } = "available.age-mail@barclays.com, kameib.dccstb@barclays.com";
+    }
+}
