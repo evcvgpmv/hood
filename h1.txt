@@ -1,0 +1,846 @@
+@page "/data-delivery-issues"
+@using Microsoft.AspNetCore.Components.Forms
+@using System.ComponentModel.DataAnnotations
+@using Midashboard.Services
+@using Midashboard.Models
+@inject IDataDeliveryIssueService DataDeliveryIssueService
+
+<EditForm Model="@formModel" OnValidSubmit="@ShowConfirmationDialog">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-container">
+        <div class="form-header">
+            <div class="header-content">
+                <div class="logo">
+                    <span class="icon">📊</span>
+                </div>
+                <h2>Data Delivery Issues</h2>
+            </div>
+        </div>
+        
+        <div class="form-body">
+           
+            <div class="form-section">
+                <h3><span class="icon">📅</span> Report Date</h3>
+                <InputDate @bind-Value="@formModel.ReportDate" class="input-field" />
+                <ValidationMessage For="@(() => formModel.ReportDate)" />
+            </div>
+            
+            <div class="form-section">
+                <h3><span class="icon">📈</span> Asset Class</h3>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <label class="checkbox-label">
+                            <input type="checkbox" @bind="formModel.AssetClassEquity" />
+                            <span class="checkmark"></span>
+                            Equity
+                        </label>
+                    </div>
+                    <div class="checkbox-item">
+                        <label class="checkbox-label">
+                            <input type="checkbox" @bind="formModel.AssetClassFX" />
+                            <span class="checkmark"></span>
+                            FX
+                        </label>
+                    </div>
+                    <div class="checkbox-item">
+                        <label class="checkbox-label">
+                            <input type="checkbox" @bind="formModel.AssetClassMacro" />
+                            <span class="checkmark"></span>
+                            Macro
+                        </label>
+                    </div>
+                    <div class="checkbox-item">
+                        <label class="checkbox-label">
+                            <input type="checkbox" @bind="formModel.AssetClassCredit" />
+                            <span class="checkmark"></span>
+                            Credit
+                        </label>
+                    </div>
+                    <div class="checkbox-item">
+                        <label class="checkbox-label">
+                            <input type="checkbox" @bind="formModel.AssetClassSecProd" />
+                            <span class="checkmark"></span>
+                            SecProd
+                        </label>
+                    </div>
+                </div>
+                <div class="selected-assets">
+                    <strong>Selected Asset Classes:</strong> 
+                    @GetSelectedAssetClasses()
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h3><span class="icon">🌎</span> Region</h3>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <label class="checkbox-label">
+                            <input type="checkbox" @bind="formModel.RegionAMER" />
+                            <span class="checkmark"></span>
+                            AMER
+                        </label>
+                    </div>
+                    <div class="checkbox-item">
+                        <label class="checkbox-label">
+                            <input type="checkbox" @bind="formModel.RegionLDN" />
+                            <span class="checkmark"></span>
+                            LDN
+                        </label>
+                    </div>
+                    <div class="checkbox-item">
+                        <label class="checkbox-label">
+                            <input type="checkbox" @bind="formModel.RegionAPAC" />
+                            <span class="checkmark"></span>
+                            APAC
+                        </label>
+                    </div>
+                </div>
+                <div class="selected-assets">
+                    <strong>Selected Regions:</strong> 
+                    @GetSelectedRegions()
+                </div>
+            </div>
+            
+             <div class="form-section">
+                <div class="section-title">
+                    <h3><span class="icon">✅</span> Issue Types</h3>
+                </div>
+                
+                <div class="toggle-container">
+                    <div class="toggle-item">
+                        <div class="toggle-label">Completion/Work Issue</div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" @bind="formModel.CompletionWorkIssue" />
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="status-indicator @(formModel.CompletionWorkIssue ? "status-yes" : "status-no")">
+                        <span class="icon">@(formModel.CompletionWorkIssue ? "✔️" : "❌")</span>
+                        <span>Currently set to: @(formModel.CompletionWorkIssue ? "Yes" : "No")</span>
+                    </div>
+                    
+                    <div class="toggle-item">
+                        <div class="toggle-label">Data Quality Issue</div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" @bind="formModel.DataQualityIssue" />
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="status-indicator @(formModel.DataQualityIssue ? "status-yes" : "status-no")">
+                        <span class="icon">@(formModel.DataQualityIssue ? "✔️" : "❌")</span>
+                        <span>Currently set to: @(formModel.DataQualityIssue ? "Yes" : "No")</span>
+                    </div>
+                    
+                    <div class="toggle-item">
+                        <div class="toggle-label">Dashboard/UI Issue</div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" @bind="formModel.DashboardUIIssue" />
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="status-indicator @(formModel.DashboardUIIssue ? "status-yes" : "status-no")">
+                        <span class="icon">@(formModel.DashboardUIIssue ? "✔️" : "❌")</span>
+                        <span>Currently set to: @(formModel.CompletionWorkIssue ? "Yes" : "No")</span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-section">
+                <h3><span class="icon">⚠️</span> Incidents Raised</h3>
+                <InputText @bind-Value="@formModel.IncidentsRaised" class="input-field" 
+                           placeholder="Enter incident IDs (e.g., INC123456789, INC987654321)" />
+            </div>
+            
+            <div class="form-section">
+                <h3><span class="icon">💬</span> Comments</h3>
+                <InputTextArea @bind-Value="@formModel.Comments" class="input-field" 
+                               placeholder="Please provide details about the issues encountered" />
+            </div>
+            
+            <div class="form-section">
+                <h3><span class="icon">📧</span> Mail Recipients</h3>
+                <InputText @bind-Value="@formModel.MailRecipients" class="input-field" 
+                           placeholder="Enter email addresses (comma separated)" />
+                <ValidationMessage For="@(() => formModel.MailRecipients)" />
+            </div>
+            
+            <div class="button-group">
+                <button type="button" class="btn btn-secondary" @onclick="@Cancel">
+                    <span class="icon">❌</span> Cancel
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <span class="icon">📤</span> Send for review
+                </button>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@if (showConfirmationDialog)
+{
+    <div class="modal-overlay">
+        <div class="confirmation-dialog">
+            <div class="dialog-header">
+                <h4><span class="icon">❓</span> Confirm Submission</h4>
+            </div>
+            <div class="dialog-body">
+                <p>Are you sure you want to send this data delivery issue for review?</p>
+                <div class="dialog-summary">
+                    <strong>Summary of your submission:</strong>
+                    <ul>
+                        <li><strong>Completion/Work Issue:</strong> @(formModel.CompletionWorkIssue ? "Yes" : "No")</li>
+                        <li><strong>Data Quality Issue:</strong> @(formModel.DataQualityIssue ? "Yes" : "No")</li>
+                        <li><strong>Dashboard/UI Issue:</strong> @(formModel.DashboardUIIssue ? "Yes" : "No")</li>
+                        <li><strong>Asset Classes:</strong> @GetSelectedAssetClasses()</li>
+                        <li><strong>Regions:</strong> @GetSelectedRegions()</li>
+                        @if (!string.IsNullOrEmpty(formModel.IncidentsRaised))
+                        {
+                            <li><strong>Incidents:</strong> @formModel.IncidentsRaised</li>
+                        }
+                        @if (!string.IsNullOrEmpty(formModel.Comments))
+                        {
+                            <li><strong>Comments:</strong> @formModel.Comments</li>
+                        }
+                        <li><strong>Mail Recipients:</strong> @formModel.MailRecipients</li>
+                        <li><strong>Report Date:</strong> @formModel.ReportDate.ToString("MM/dd/yyyy")</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="dialog-footer">
+                <button type="button" @onclick="ConfirmSendForReview" class="btn btn-primary">
+                    <span class="icon">✔️</span> Yes, Send for Review
+                </button>
+                <button type="button" @onclick="HideConfirmationDialog" class="btn btn-secondary">
+                    <span class="icon">❌</span> Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (showSuccessMessage)
+{
+    <div class="modal-overlay">
+        <div class="success-dialog">
+            <div class="dialog-header">
+                <h4><span class="icon">✅</span> Success!</h4>
+            </div>
+            <div class="dialog-body">
+                <p>Your data delivery issue has been successfully submitted and saved to the database.</p>
+                <div class="success-details">
+                    <strong>Issue ID:</strong> @submittedIssueId<br />
+                    <strong>Submitted Date:</strong> @DateTime.Now.ToString("MM/dd/yyyy HH:mm")
+                </div>
+            </div>
+            <div class="dialog-footer">
+                <button type="button" @onclick="HideSuccessMessage" class="btn btn-primary">
+                    <span class="icon">✔️</span> OK
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private DataDeliveryIssueModel formModel = new DataDeliveryIssueModel();
+    private bool showConfirmationDialog = false;
+    private bool showSuccessMessage = false;
+    private int submittedIssueId = 0;
+    
+    protected override void OnInitialized()
+    {
+        // Set initial toggle values as specified
+        formModel.CompletionWorkIssue = true;
+        formModel.DataQualityIssue = false;
+        formModel.DashboardUIIssue = true;
+        formModel.ReportDate = GetPreviousWeekday(DateTime.Today); // Set default to previous weekday
+    }
+    
+    private DateTime GetPreviousWeekday(DateTime date)
+    {
+        var previousDay = date.AddDays(-1);
+        
+        // Keep going back until we find a weekday (Monday = 1, Sunday = 7)
+        while (previousDay.DayOfWeek == DayOfWeek.Saturday || previousDay.DayOfWeek == DayOfWeek.Sunday)
+        {
+            previousDay = previousDay.AddDays(-1);
+        }
+        
+        return previousDay;
+    }
+    
+    private string GetSelectedAssetClasses()
+    {
+        var selectedClasses = new List<string>();
+        
+        if (formModel.AssetClassEquity) selectedClasses.Add("Equity");
+        if (formModel.AssetClassFX) selectedClasses.Add("FX");
+        if (formModel.AssetClassMacro) selectedClasses.Add("Macro");
+        if (formModel.AssetClassCredit) selectedClasses.Add("Credit");
+        if (formModel.AssetClassSecProd) selectedClasses.Add("SecProd");
+        
+        return selectedClasses.Count > 0 ? string.Join(", ", selectedClasses) : "None selected";
+    }
+    
+    private string GetSelectedRegions()
+    {
+        var selectedRegions = new List<string>();
+        
+        if (formModel.RegionAMER) selectedRegions.Add("AMER");
+        if (formModel.RegionLDN) selectedRegions.Add("LDN");
+        if (formModel.RegionAPAC) selectedRegions.Add("APAC");
+        
+        return selectedRegions.Count > 0 ? string.Join(", ", selectedRegions) : "None selected";
+    }
+    
+    private void ShowConfirmationDialog()
+    {
+        showConfirmationDialog = true;
+    }
+    
+    private void HideConfirmationDialog()
+    {
+        showConfirmationDialog = false;
+    }
+    
+    private void ConfirmSendForReview()
+    {
+        showConfirmationDialog = false;
+        HandleValidSubmit();
+    }
+    
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            // Convert the form model to the database model
+            var dataDeliveryIssue = new DataDeliveryIssue
+            {
+                CompletionWorkIssue = formModel.CompletionWorkIssue,
+                DataQualityIssue = formModel.DataQualityIssue,
+                DashboardUIIssue = formModel.DashboardUIIssue,
+                AssetClassEquity = formModel.AssetClassEquity,
+                AssetClassFX = formModel.AssetClassFX,
+                AssetClassMacro = formModel.AssetClassMacro,
+                AssetClassCredit = formModel.AssetClassCredit,
+                AssetClassSecProd = formModel.AssetClassSecProd,
+                RegionAMER = formModel.RegionAMER,
+                RegionLDN = formModel.RegionLDN,
+                RegionAPAC = formModel.RegionAPAC,
+                IncidentsRaised = formModel.IncidentsRaised,
+                Comments = formModel.Comments,
+                MailRecipients = formModel.MailRecipients,
+                ReportDate = formModel.ReportDate,
+                SubmittedBy = "System User", // You can modify this to get actual user
+                Status = "Submitted"
+            };
+
+            // Insert into database
+            var createdIssue = await DataDeliveryIssueService.CreateAsync(dataDeliveryIssue);
+            submittedIssueId = createdIssue.Id;
+
+            // Log the submission
+            Console.WriteLine($"Form submitted and saved to database with ID: {createdIssue.Id}");
+            Console.WriteLine($"Completion/Work Issue: {formModel.CompletionWorkIssue}");
+            Console.WriteLine($"Data Quality Issue: {formModel.DataQualityIssue}");
+            Console.WriteLine($"Dashboard/UI Issue: {formModel.DashboardUIIssue}");
+            Console.WriteLine($"Asset Classes: {GetSelectedAssetClasses()}");
+            Console.WriteLine($"Regions: {GetSelectedRegions()}");
+            Console.WriteLine($"Incidents Raised: {formModel.IncidentsRaised}");
+            Console.WriteLine($"Comments: {formModel.Comments}");
+            Console.WriteLine($"Mail Recipients: {formModel.MailRecipients}");
+            Console.WriteLine($"Report Date: {formModel.ReportDate}");
+
+            // Show success message
+            showSuccessMessage = true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving to database: {ex.Message}");
+            // In a real application, you would show an error message to the user
+        }
+    }
+    
+    private void HideSuccessMessage()
+    {
+        showSuccessMessage = false;
+        ResetForm();
+    }
+    
+    private void Cancel()
+    {
+        ResetForm();
+    }
+    
+    private void ResetForm()
+    {
+        formModel = new DataDeliveryIssueModel();
+        formModel.CompletionWorkIssue = true;
+        formModel.DataQualityIssue = false;
+        formModel.DashboardUIIssue = true;
+        formModel.ReportDate = GetPreviousWeekday(DateTime.Today);
+    }
+    
+    public class DataDeliveryIssueModel
+    {
+        public bool CompletionWorkIssue { get; set; }
+        public bool DataQualityIssue { get; set; }
+        public bool DashboardUIIssue { get; set; }
+        
+        // Asset Class properties
+        public bool AssetClassEquity { get; set; }
+        public bool AssetClassFX { get; set; }
+        public bool AssetClassMacro { get; set; }
+        public bool AssetClassCredit { get; set; }
+        public bool AssetClassSecProd { get; set; }
+        
+        // Region properties
+        public bool RegionAMER { get; set; }
+        public bool RegionLDN { get; set; }
+        public bool RegionAPAC { get; set; }
+        
+        public string IncidentsRaised { get; set; }
+        public string Comments { get; set; }
+        
+        [Required(ErrorMessage = "Mail recipients are required")]
+        [EmailList(ErrorMessage = "Please enter valid email addresses")]
+        public string MailRecipients { get; set; } = "available.age-mail@barclays.com, kameib.dccstb@barclays.com";
+        
+        [Required(ErrorMessage = "Report date is required")]
+        [Display(Name = "Report Date")]
+        public DateTime ReportDate { get; set; }
+    }
+    
+    // Custom validation attribute for email lists
+    public class EmailListAttribute : ValidationAttribute
+    {
+        protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+        {
+            if (value is string emailList)
+            {
+                var emails = emailList.Split(',');
+                foreach (var email in emails)
+                {
+                    var trimmedEmail = email.Trim();
+                    if (!string.IsNullOrEmpty(trimmedEmail) && !IsValidEmail(trimmedEmail))
+                    {
+                        return new ValidationResult(ErrorMessage ?? "Invalid email format");
+                    }
+                }
+            }
+            return ValidationResult.Success;
+        }
+        
+        private bool IsValidEmail(string email)
+        {
+            try {
+                var addr = new System.Net.Mail.MailAddress(email);
+                return addr.Address == email;
+            }
+            catch {
+                return false;
+            }
+        }
+    }
+}
+
+<style>
+    .form-container {
+        max-width: 280px;
+        margin: 0 auto;
+        background-color: #fff;
+        border-radius: 6px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+    
+    .form-header {
+        background: #2c3e50;
+        color: white;
+        padding: 12px 15px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .header-content {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .form-header h2 {
+        font-weight: 600;
+        font-size: 16px;
+    }
+    
+    .form-body {
+        padding: 15px;
+    }
+    
+    .form-section {
+        background-color: #f9f9f9;
+        padding: 12px;
+        margin-bottom: 12px;
+        border-radius: 5px;
+        border-left: 2px solid #3498db;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+    
+    h3 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        font-size: 13px;
+    }
+    
+    .icon {
+        margin-right: 6px;
+        font-size: 12px;
+    }
+    
+    .toggle-container {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .toggle-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px;
+        background: white;
+        border-radius: 4px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    
+    .toggle-label {
+        font-weight: 500;
+        font-size: 11px;
+    }
+    
+    .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 40px;
+        height: 20px;
+    }
+    
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 20px;
+    }
+    
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 14px;
+        width: 14px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+    
+    input:checked + .slider {
+        background-color: #2ecc71;
+    }
+    
+    input:checked + .slider:before {
+        transform: translateX(20px);
+    }
+    
+    .checkbox-group {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+    
+    .checkbox-item {
+        background: white;
+        padding: 8px;
+        border-radius: 4px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+    
+    .checkbox-item:hover {
+        box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+        transform: translateY(-1px);
+    }
+    
+    .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        color: #34495e;
+        position: relative;
+        font-size: 11px;
+    }
+    
+    .checkbox-label input[type="checkbox"] {
+        opacity: 0;
+        position: absolute;
+        cursor: pointer;
+    }
+    
+    .checkmark {
+        height: 14px;
+        width: 14px;
+        background-color: #ecf0f1;
+        border: 2px solid #bdc3c7;
+        border-radius: 2px;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    
+    .checkbox-label:hover .checkmark {
+        background-color: #d5dbdb;
+        border-color: #95a5a6;
+    }
+    
+    .checkbox-label input:checked ~ .checkmark {
+        background-color: #3498db;
+        border-color: #3498db;
+    }
+    
+    .checkmark:after {
+        content: "";
+        position: absolute;
+        display: none;
+        left: 4px;
+        top: 1px;
+        width: 3px;
+        height: 6px;
+        border: solid white;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+    }
+    
+    .checkbox-label input:checked ~ .checkmark:after {
+        display: block;
+    }
+    
+    .selected-assets {
+        background-color: #e8f4fd;
+        border: 1px solid #b3d9f2;
+        border-radius: 3px;
+        padding: 8px;
+        margin-top: 10px;
+        color: #2c3e50;
+        font-size: 10px;
+    }
+    
+    .input-field {
+        width: 100%;
+        padding: 6px 8px;
+        border: 1px solid #ddd;
+        border-radius: 2px;
+        font-family: inherit;
+        font-size: 11px;
+        margin-top: 5px;
+    }
+    
+    .input-field:focus {
+        outline: none;
+        border-color: #3498db;
+        box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+    }
+    
+    .button-group {
+        display: flex;
+        gap: 8px;
+        margin-top: 15px;
+        justify-content: flex-end;
+    }
+    
+    .btn {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 2px;
+        cursor: pointer;
+        font-size: 11px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .btn-primary {
+        background-color: #3498db;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background-color: #2980b9;
+        transform: translateY(-1px);
+    }
+    
+    .btn-secondary {
+        background-color: #95a5a6;
+        color: white;
+    }
+    
+    .btn-secondary:hover {
+        background-color: #7f8c8d;
+        transform: translateY(-1px);
+    }
+    
+    .status-indicator {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 10px;
+        margin-top: 3px;
+    }
+    
+    .status-yes {
+        color: #27ae60;
+    }
+    
+    .status-no {
+        color: #e74c3c;
+    }
+    
+    .logo {
+        width: 25px;
+        height: 25px;
+        background: #3498db;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 12px;
+    }
+    
+    .validation-message {
+        color: #e74c3c;
+        font-size: 9px;
+        margin-top: 3px;
+    }
+    
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+    
+    .confirmation-dialog {
+        background: white;
+        border-radius: 5px;
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
+        max-width: 250px;
+        width: 90%;
+    }
+    
+    .success-dialog {
+        background: white;
+        border-radius: 5px;
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
+        max-width: 250px;
+        width: 90%;
+    }
+    
+    .dialog-header {
+        padding: 12px 12px 0 12px;
+        border-bottom: 1px solid #ecf0f1;
+    }
+    
+    .dialog-header h4 {
+        margin: 0;
+        color: #2c3e50;
+        font-size: 13px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .dialog-body {
+        padding: 12px;
+    }
+    
+    .dialog-body p {
+        margin: 0 0 12px 0;
+        color: #34495e;
+        font-size: 11px;
+        line-height: 1.3;
+    }
+    
+    .dialog-summary {
+        background-color: #f8f9fa;
+        border-radius: 3px;
+        padding: 10px;
+        border-left: 2px solid #3498db;
+    }
+    
+    .success-details {
+        background-color: #e8f5e8;
+        border-radius: 3px;
+        padding: 10px;
+        border-left: 2px solid #27ae60;
+        margin-top: 10px;
+    }
+    
+    .dialog-summary strong {
+        color: #2c3e50;
+        display: block;
+        margin-bottom: 6px;
+        font-size: 10px;
+    }
+    
+    .dialog-summary ul {
+        margin: 0;
+        padding-left: 12px;
+        color: #34495e;
+        font-size: 10px;
+    }
+    
+    .dialog-summary li {
+        margin-bottom: 3px;
+        line-height: 1.2;
+    }
+    
+    .dialog-footer {
+        padding: 0 12px 12px 12px;
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+    }
+    
+    .dialog-footer .btn {
+        min-width: 90px;
+        font-size: 10px;
+        padding: 5px 10px;
+    }
+</style>
