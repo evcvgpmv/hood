@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DeliveryIssueDashboard.zip</title>
+    <style>
+        .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+        pre { background: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto; }
+        .file-header { background: #e0e0e0; padding: 5px 10px; border-radius: 3px; margin-top: 20px; }
+        .instructions { background: #e7f3fe; padding: 15px; border-left: 4px solid #2196F3; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Delivery Issue Dashboard - Complete Application</h1>
+        <p>This file contains a complete Blazor Server application. Save this file with a .zip extension and extract it to get the full project structure.</p>
+        
+        <div class="instructions">
+            <h3>Instructions:</h3>
+            <ol>
+                <li>Save this file as <strong>DeliveryIssueDashboard.zip</strong></li>
+                <li>Extract the zip file to a folder</li>
+                <li>Open the solution in Visual Studio</li>
+                <li>Update the database connection string in appsettings.json</li>
+                <li>Run the application</li>
+            </ol>
+        </div>
+
+        <h2>Project Structure:</h2>
+        <pre>
+DeliveryIssueDashboard/
+├── Data/
+│   ├── AppDbContext.cs
+│   ├── DeliveryIssueDashboard.cs
+│   ├── AssetClass.cs
+│   └── DeliveryIssueService.cs
+├── Models/
+│   └── FilterModel.cs
+├── Pages/
+│   ├── DeliveryIssue.razor
+│   └── _Host.cshtml
+├── Program.cs
+├── appsettings.json
+├── DeliveryIssueDashboard.csproj
+└── README.txt
+        </pre>
+
+        <div class="file-header">DeliveryIssueDashboard.csproj</div>
+        <pre>
+&lt;Project Sdk="Microsoft.NET.Sdk.Web"&gt;
+
+  &lt;PropertyGroup&gt;
+    &lt;TargetFramework&gt;net6.0&lt;/TargetFramework&gt;
+    &lt;Nullable&gt;enable&lt;/Nullable&gt;
+    &lt;ImplicitUsings&gt;enable&lt;/ImplicitUsings&gt;
+  &lt;/PropertyGroup&gt;
+
+  &lt;ItemGroup&gt;
+    &lt;PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="6.0.0" /&gt;
+    &lt;PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.0" /&gt;
+    &lt;PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="6.0.0" /&gt;
+    &lt;PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.0" /&gt;
+    &lt;PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.0" /&gt;
+  &lt;/ItemGroup&gt;
+
+&lt;/Project&gt;
+        </pre>
+
+        <div class="file-header">Program.cs</div>
+        <pre>
+using DeliveryIssueDashboard.Data;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Server;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddRazorPages();
+builder.Services.AddServerSideBlazor();
+
+// Add Entity Framework
+builder.Services.AddDbContext&lt;AppDbContext&gt;(options =&gt;
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Register services
+builder.Services.AddScoped&lt;IDeliveryIssueService, DeliveryIssueService&gt;();
+
+builder.Services.AddAuthentication("Identity.Application")
+    .AddCookie();
+builder.Services.AddAuthorization();
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Error");
+    app.UseHsts();
+}
+
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+app.UseRouting();
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapBlazorHub();
+app.MapFallbackToPage("/_Host");
+
+// Initialize database
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService&lt;AppDbContext&gt;();
+    context.Database.EnsureCreated();
+}
+
+app.Run();
+        </pre>
+
+        <div class="file-header">Data/DeliveryIssueDashboard.cs</div>
+        <pre>
+using System.ComponentModel.DataAnnotations;
+
+namespace DeliveryIssueDashboard.Data
+{
+    public class DeliveryIssueDashboard
+    {
+        public int Id { get; set; }
+        
+        [Required]
+        public DateTime CheckDate { get; set; }
+        
+        [Required]
+        public DateTime ReportDate { get; set; }
+        
+        [Required, MaxLength(50)]
+        public string AssetClass { get; set; } = string.Empty;
+        
+        [Required]
+        public DateTime DataDeliveredTime { get; set; }
+        
+        public bool? SLATimingMet { get; set; }
+        public bool? CompletenessIssue { get; set; }
+        public bool? DataQualityIssue { get; set; }
+        public bool? DashboardUI { get; set; }
+        
+        public string IncidentsRaised { get; set; } = string.Empty;
+        public string Comment { get; set; } = string.Empty;
+        
+        [Required]
+        public bool ReportIsPublished { get; set; }
+        
+        [Required, MaxLength(100)]
+        public string CheckedBy { get; set; } = string.Empty;
+        
+        [MaxLength(100)]
+        public string? ReviewedBy { get; set; }
+        
+        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+        public DateTime? ModifiedDate { get; set; }
+    }
+}
+        </pre>
+
+        <div class="file-header">Data/AssetClass.cs</div>
+        <pre>
+namespace DeliveryIssueDashboard.Data
+{
+    public class AssetClass
+    {
+        public int Id { get; set; }
+        
+        [Required, MaxLength(50)]
+        public string Name { get; set; } = string.Empty;
+    }
+}
+        </pre>
+
+        <div class="file-header">Data/AppDbContext.cs</div>
+        <pre>
+using Microsoft.EntityFrameworkCore;
+
+namespace DeliveryIssueDashboard.Data
+{
+    public class AppDbContext : DbContext
+    {
+        public AppDbContext(DbContextOptions&lt;AppDbContext&gt; options) : base(options)
+        {
+        }
+
+        public DbSet&lt;DeliveryIssueDashboard&gt; DeliveryIssueDashboards { get; set; }
+        public DbSet&lt;AssetClass&gt; AssetClasses { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity&lt;DeliveryIssueDashboard&gt;(entity =&gt;
+            {
+                entity.ToTable("DeliveryIssueDashboards");
+                entity.HasKey(e =&gt; e.Id);
+                
+                entity.Property(e =&gt; e.AssetClass)
+                    .IsRequired()
+                    .HasMaxLength(50);
+                    
+                entity.Property(e =&gt; e.CheckedBy)
+                    .IsRequired()
+                    .HasMaxLength(100);
+                    
+                entity.Property(e =&gt; e.ReviewedBy)
+                    .HasMaxLength(100);
+                    
+                entity.Property(e =&gt; e.IncidentsRaised)
+                    .HasColumnType("nvarchar(max)");
+                    
+                entity.Property(e =&gt; e.Comment)
+                    .HasColumnType("nvarchar(max)");
+                    
+                entity.Property(e =&gt; e.CreatedDate)
+                    .HasDefaultValueSql("GETUTCDATE()");
+            });
+
+            modelBuilder.Entity&lt;AssetClass&gt;(entity =&gt;
+            {
+                entity.ToTable("AssetClasses");
+                entity.HasKey(e =&gt; e.Id);
+                
+                entity.Property(e =&gt; e.Name)
+                    .IsRequired()
+                    .HasMaxLength(50);
+            });
+
+            // Seed initial data
+            modelBuilder.Entity&lt;AssetClass&gt;().HasData(
+                new AssetClass { Id = 1, Name = "Credit" },
+                new AssetClass { Id = 2, Name = "Equity" },
+                new AssetClass { Id = 3, Name = "Macro" },
+                new AssetClass { Id = 4, Name = "All" }
+            );
+        }
+    }
+}
+        </pre>
+
+        <div class="file-header">Data/DeliveryIssueService.cs</div>
+        <pre>
+using Microsoft.EntityFrameworkCore;
+
+namespace DeliveryIssueDashboard.Data
+{
+    public interface IDeliveryIssueService
+    {
+        Task&lt;List&lt;DeliveryIssueDashboard&gt;&gt; GetDeliveryIssueDashboardsAsync(FilterModel filter);
+        Task&lt;bool&gt; UpdateReviewedByAsync(int id, string reviewedBy);
+        Task&lt;List&lt;string&gt;&gt; GetAssetClassesAsync();
+    }
+
+    public class DeliveryIssueService : IDeliveryIssueService
+    {
+        private readonly AppDbContext _context;
+
+        public DeliveryIssueService(AppDbContext context)
+        {
+            _context = context;
+        }
+
+        public async Task&lt;List&lt;DeliveryIssueDashboard&gt;&gt; GetDeliveryIssueDashboardsAsync(FilterModel filter)
+        {
+            var query = _context.DeliveryIssueDashboards
+                .Where(x =&gt; x.ReportDate &gt;= filter.DateFrom && x.ReportDate &lt;= filter.DateTo);
+            
+            if (!filter.AssetClasses.Contains("All") && filter.AssetClasses.Any())
+            {
+                query = query.Where(x =&gt; filter.AssetClasses.Contains(x.AssetClass));
+            }
+            
+            return await query
+                .OrderByDescending(x =&gt; x.ReportDate)
+                .ThenBy(x =&gt; x.AssetClass)
+                .ToListAsync();
+        }
+
+        public async Task&lt;bool&gt; UpdateReviewedByAsync(int id, string reviewedBy)
+        {
+            var issue = await _context.DeliveryIssueDashboards.FindAsync(id);
+            if (issue == null)
+                return false;
+
+            issue.ReviewedBy = reviewedBy;
+            issue.ModifiedDate = DateTime.UtcNow;
+            
+            _context.DeliveryIssueDashboards.Update(issue);
+            return await _context.SaveChangesAsync() &gt; 0;
+        }
+
+        public async Task&lt;List&lt;string&gt;&gt; GetAssetClassesAsync()
+        {
+            return await _context.AssetClasses
+                .OrderBy(x =&gt; x.Name)
+                .Select(x =&gt; x.Name)
+                .ToListAsync();
+        }
+    }
+}
+        </pre>
+
+        <div class="file-header">Models/FilterModel.cs</div>
+        <pre>
+namespace DeliveryIssueDashboard.Models
+{
+    public class FilterModel
+    {
+        public DateTime DateFrom { get; set; }
+        public DateTime DateTo { get; set; }
+        public List&lt;string&gt; AssetClasses { get; set; } = new List&lt;string&gt;();
+    }
+}
+        </pre>
+
+        <div class="file-header">Pages/DeliveryIssue.razor</div>
+        <pre>
+@page "/deliveryissue"
+@using Microsoft.EntityFrameworkCore
+@using DeliveryIssueDashboard.Data
+@using DeliveryIssueDashboard.Models
+@inject IDeliveryIssueService DeliveryIssueService
+@inject AuthenticationStateProvider AuthStateProvider
+
+&lt;h3&gt;Delivery Issue Dashboard&lt;/h3&gt;
+
+&lt;div class="filters-container"&gt;
+    &lt;div class="row mb-3"&gt;
+        &lt;div class="col-md-3"&gt;
+            &lt;label&gt;Date From&lt;/label&gt;
+            &lt;InputDate @bind-Value="filter.DateFrom" class="form-control" /&gt;
+        &lt;/div&gt;
+        &lt;div class="col-md-3"&gt;
+            &lt;label&gt;Date To&lt;/label&gt;
+            &lt;InputDate @bind-Value="filter.DateTo" class="form-control" /&gt;
+        &lt;/div&gt;
+        &lt;div class="col-md-4"&gt;
+            &lt;label&gt;Asset Class&lt;/label&gt;
+            &lt;div&gt;
+                @foreach (var assetClass in assetClasses)
+                {
+                    &lt;div class="form-check form-check-inline"&gt;
+                        &lt;input class="form-check-input" type="checkbox" 
+                               id="@($"assetClass_{assetClass}")" 
+                               value="@assetClass" 
+                               checked="@(filter.AssetClasses.Contains(assetClass))"
+                               @onchange="@((e) =&gt; ToggleAssetClass(assetClass, (bool)e.Value))" /&gt;
+                        &lt;label class="form-check-label" for="@($"assetClass_{assetClass}")"&gt;
+                            @assetClass
+                        &lt;/label&gt;
+                    &lt;/div&gt;
+                }
+            &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class="col-md-2"&gt;
+            &lt;button class="btn btn-primary mt-4" @onclick="LoadData"&gt;Apply Filters&lt;/button&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+
+@if (isLoading)
+{
+    &lt;div class="text-center"&gt;
+        &lt;div class="spinner-border" role="status"&gt;
+            &lt;span class="visually-hidden"&gt;Loading...&lt;/span&gt;
+        &lt;/div&gt;
+        &lt;p&gt;Loading data...&lt;/p&gt;
+    &lt;/div&gt;
+}
+else if (deliveryIssues.Any())
+{
+    &lt;div class="table-responsive"&gt;
+        &lt;table class="table table-striped table-bordered"&gt;
+            &lt;thead class="table-dark"&gt;
+                &lt;tr&gt;
+                    &lt;th&gt;Check Date&lt;/th&gt;
+                    &lt;th&gt;Report Date&lt;/th&gt;
+                    &lt;th&gt;Asset Class&lt;/th&gt;
+                    &lt;th&gt;Data Delivered Time&lt;/th&gt;
+                    &lt;th&gt;SLA Timing Met&lt;/th&gt;
+                    &lt;th&gt;Completeness Issue&lt;/th&gt;
+                    &lt;th&gt;Data Quality Issue&lt;/th&gt;
+                    &lt;th&gt;Dashboard UI&lt;/th&gt;
+                    &lt;th&gt;Incidents Raised&lt;/th&gt;
+                    &lt;th&gt;Comment&lt;/th&gt;
+                    &lt;th&gt;Report Published&lt;/th&gt;
+                    &lt;th&gt;Checked By&lt;/th&gt;
+                    &lt;th&gt;Reviewed By&lt;/th&gt;
+                &lt;/tr&gt;
+            &lt;/thead&gt;
+            &lt;tbody&gt;
+                @foreach (var issue in deliveryIssues)
+                {
+                    &lt;tr&gt;
+                        &lt;td&gt;@issue.CheckDate.ToString("dd/MM/yyyy")&lt;/td&gt;
+                        &lt;td&gt;@issue.ReportDate.ToString("dd/MM/yyyy")&lt;/td&gt;
+                        &lt;td&gt;&lt;span class="badge bg-primary"&gt;@issue.AssetClass&lt;/span&gt;&lt;/td&gt;
+                        &lt;td&gt;@issue.DataDeliveredTime.ToString("dd/MM/yyyy HH:mm")&lt;/td&gt;
+                        &lt;td&gt;@RenderBoolean(issue.SLATimingMet)&lt;/td&gt;
+                        &lt;td&gt;@RenderBoolean(issue.CompletenessIssue)&lt;/td&gt;
+                        &lt;td&gt;@RenderBoolean(issue.DataQualityIssue)&lt;/td&gt;
+                        &lt;td&gt;@RenderBoolean(issue.DashboardUI)&lt;/td&gt;
+                        &lt;td&gt;@issue.IncidentsRaised&lt;/td&gt;
+                        &lt;td&gt;@issue.Comment&lt;/td&gt;
+                        &lt;td&gt;
+                            &lt;span class="badge @(issue.ReportIsPublished ? "bg-success" : "bg-warning")"&gt;
+                                @(issue.ReportIsPublished ? "Yes" : "No")
+                            &lt;/span&gt;
+                        &lt;/td&gt;
+                        &lt;td&gt;@issue.CheckedBy&lt;/td&gt;
+                        &lt;td&gt;
+                            @if (string.IsNullOrEmpty(issue.ReviewedBy))
+                            {
+                                &lt;button class="btn btn-sm btn-primary" @onclick="() =&gt; ReviewIssue(issue.Id)"&gt;
+                                    Review
+                                &lt;/button&gt;
+                            }
+                            else
+                            {
+                                &lt;span class="badge bg-success"&gt;
+                                    Reviewed by: @issue.ReviewedBy
+                                &lt;/span&gt;
+                            }
+                        &lt;/td&gt;
+                    &lt;/tr&gt;
+                }
+            &lt;/tbody&gt;
+        &lt;/table&gt;
+    &lt;/div&gt;
+}
+else
+{
+    &lt;div class="alert alert-info"&gt;
+        No data found for the selected filters.
+    &lt;/div&gt;
+}
+
+@code {
+    private List&lt;DeliveryIssueDashboard&gt; deliveryIssues = new List&lt;DeliveryIssueDashboard&gt;();
+    private List&lt;string&gt; assetClasses = new List&lt;string&gt;();
+    private FilterModel filter = new FilterModel();
+    private bool isLoading = false;
+    private string currentUser = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Set default dates
+        filter.DateTo = DateTime.Today.AddDays(-1); // T-1
+        filter.DateFrom = GetPreviousWorkingDay(DateTime.Today, 6); // T-6 in working days
+        
+        // Default to "All" asset classes
+        filter.AssetClasses = new List&lt;string&gt; { "All" };
+        
+        assetClasses = await DeliveryIssueService.GetAssetClassesAsync();
+        
+        // Get current user
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        currentUser = authState.User.Identity?.Name ?? "Unknown";
+        
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        StateHasChanged();
+        
+        try
+        {
+            deliveryIssues = await DeliveryIssueService.GetDeliveryIssueDashboardsAsync(filter);
+        }
+        catch (Exception ex)
+        {
+            // Handle error (you might want to show a message to the user)
+            Console.WriteLine($"Error loading data: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void ToggleAssetClass(string assetClass, bool isSelected)
+    {
+        if (isSelected)
+        {
+            if (!filter.AssetClasses.Contains(assetClass))
+            {
+                filter.AssetClasses.Add(assetClass);
+            }
+        }
+        else
+        {
+            filter.AssetClasses.Remove(assetClass);
+            
+            // If no asset classes selected, default to "All"
+            if (!filter.AssetClasses.Any())
+            {
+                filter.AssetClasses.Add("All");
+            }
+        }
+    }
+
+    private async Task ReviewIssue(int issueId)
+    {
+        var success = await DeliveryIssueService.UpdateReviewedByAsync(issueId, currentUser);
+        if (success)
+        {
+            // Refresh the data
+            await LoadData();
+        }
+    }
+
+    private MarkupString RenderBoolean(bool? value)
+    {
+        if (!value.HasValue)
+            return (MarkupString)"&lt;span class='text-muted'&gt;N/A&lt;/span&gt;";
+        
+        return value.Value ? 
+            (MarkupString)"&lt;span class='text-success'&gt;Yes&lt;/span&gt;" : 
+            (MarkupString)"&lt;span class='text-danger'&gt;No&lt;/span&gt;";
+    }
+
+    private DateTime GetPreviousWorkingDay(DateTime date, int workingDaysBack)
+    {
+        var result = date;
+        var daysBack = 0;
+        
+        while (daysBack &lt; workingDaysBack)
+        {
+            result = result.AddDays(-1);
+            // Skip weekends (Saturday and Sunday)
+            if (result.DayOfWeek != DayOfWeek.Saturday && result.DayOfWeek != DayOfWeek.Sunday)
+            {
+                daysBack++;
+            }
+        }
+        
+        return result;
+    }
+}
+        </pre>
+
+        <div class="file-header">appsettings.json</div>
+        <pre>
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=localhost;Database=DeliveryIssueDashboard;Integrated Security=true;TrustServerCertificate=true;"
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning",
+      "Microsoft.EntityFrameworkCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*"
+}
+        </pre>
+
+        <div class="file-header">README.txt</div>
+        <pre>
+Delivery Issue Dashboard
+========================
+
+This is a Blazor Server application for tracking delivery issues.
+
+Features:
+- Filter by date range and asset classes
+- Review system for supervisors
+- SQL Server backend with Entity Framework Core
+- Responsive UI with Bootstrap
+
+Setup Instructions:
+1. Update the connection string in appsettings.json
+2. Run the following commands:
+   - dotnet ef migrations add InitialCreate
+   - dotnet ef database update
+3. Run the application with: dotnet run
+
+The application will be available at https://localhost:7000/deliveryissue
+        </pre>
+    </div>
+</body>
+</html>
