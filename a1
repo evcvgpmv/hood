@@ -1,0 +1,21 @@
+# Variables
+$certName   = "localhost"
+$pfxPath    = "C:\certs\localhost.pfx"
+$pfxPass    = "MyStrongPassword123"
+
+# Create exportable self-signed certificate
+$cert = New-SelfSignedCertificate `
+    -DnsName $certName `
+    -CertStoreLocation "cert:\LocalMachine\My" `
+    -KeyExportPolicy Exportable `
+    -FriendlyName "Localhost Dev Cert" `
+    -NotAfter (Get-Date).AddYears(2)
+
+# Secure the password
+$secPassword = ConvertTo-SecureString -String $pfxPass -Force -AsPlainText
+
+# Export certificate with private key to .pfx
+Export-PfxCertificate `
+    -Cert "cert:\LocalMachine\My\$($cert.Thumbprint)" `
+    -FilePath $pfxPath `
+    -Password $secPassword
